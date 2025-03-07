@@ -4,74 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sleep Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f9;
-    }
-    .container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      text-align: center;
-    }
-    input, button {
-      padding: 10px;
-      width: 100%;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-    h1 {
-      font-size: 24px;
-      color: #333;
-    }
-    .result {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #555;
-    }
-    .result ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    .result li {
-      margin-bottom: 10px;
-    }
-    .cycle-count {
-      font-style: italic;
-      color: #888;
-    }
+    /* Custom styles for specific tweaks */
+    .cycle-count { font-style: italic; color: #6b7280; }
+    .log-entry { border-bottom: 1px solid #e5e7eb; padding: 8px 0; }
   </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans flex items-center justify-center min-h-screen p-4">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <h1 class="text-2xl font-bold text-gray-800 text-center mb-4">Sleep Calculator</h1>
+    
+    <!-- Wake-up Time Input -->
+    <div class="mb-4">
+      <label class="block text-gray-700 mb-2">Desired Wake-up Time</label>
+      <input type="time" id="wakeTime" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+    </div>
+    <button onclick="calculateSleepTime()" class="w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition">Calculate</button>
+    
+    <!-- Results -->
+    <div id="result" class="mt-6 text-gray-700"></div>
 
-  <div class="container">
-    <h1>Sleep Calculator</h1>
-    <p>Enter your desired wake-up time</p>
-    <input type="time" id="wakeTime" required>
-    <button onclick="calculateSleepTime()">Calculate</button>
+    <!-- Sleep Tips -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800">Sleep Tips</h3>
+      <ul class="list-disc pl-5 text-gray-600">
+        <li>Avoid caffeine 6 hours before bed.</li>
+        <li>Keep a consistent sleep schedule.</li>
+        <li>Create a relaxing bedtime routine.</li>
+      </ul>
+    </div>
 
-    <div class="result" id="result"></div>
+    <!-- Sleep Cycle Info -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800">Sleep Cycles</h3>
+      <p class="text-gray-600">Each cycle lasts ~90 minutes:</p>
+      <ul class="list-disc pl-5 text-gray-600">
+        <li><strong>Light Sleep:</strong> Relaxing, easy to wake.</li>
+        <li><strong>Deep Sleep:</strong> Restorative, harder to wake.</li>
+        <li><strong>REM:</strong> Dreaming, brain activity peaks.</li>
+      </ul>
+    </div>
+
+    <!-- Sleep Log -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800">Sleep Log</h3>
+      <input type="date" id="logDate" class="w-full p-2 border border-gray-300 rounded-md mb-2">
+      <input type="number" id="logHours" placeholder="Hours slept" min="0" max="24" step="0.5" class="w-full p-2 border border-gray-300 rounded-md mb-2">
+      <button onclick="logSleep()" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">Log Sleep</button>
+      <div id="sleepLog" class="mt-4 text-gray-600"></div>
+    </div>
+
+    <!-- Health App Integration Placeholder -->
+    <div class="mt-6">
+      <h3 class="text-lg font-semibold text-gray-800">Health App Sync</h3>
+      <p class="text-gray-600">Connect to Fitbit, Apple Watch, etc. (Coming soon!)</p>
+    </div>
   </div>
 
   <script>
+    let sleepLogData = [];
+
     function calculateSleepTime() {
       const wakeTime = document.getElementById('wakeTime').value;
       if (!wakeTime) {
@@ -79,29 +72,22 @@
         return;
       }
 
-      // Parse the time input to hours and minutes
       const [hours, minutes] = wakeTime.split(':').map(num => parseInt(num));
-
-      // Convert wake time to minutes
       let wakeTimeInMinutes = hours * 60 + minutes;
-
-      // Sleep cycle is typically 90 minutes long, so calculate backwards
       let results = [];
+
       for (let i = 5; i >= 1; i--) {
         let sleepTimeInMinutes = wakeTimeInMinutes - i * 90;
-        if (sleepTimeInMinutes < 0) {
-          sleepTimeInMinutes += 24 * 60; // Wrap around to previous day
-        }
+        if (sleepTimeInMinutes < 0) sleepTimeInMinutes += 24 * 60;
         
         let sleepHour = Math.floor(sleepTimeInMinutes / 60);
         let sleepMinute = sleepTimeInMinutes % 60;
         results.push({ time: formatTime(sleepHour, sleepMinute), cycles: i });
       }
 
-      // Display the results with explanations
       document.getElementById('result').innerHTML = `
-        <h3>Suggested Bedtimes:</h3>
-        <ul>
+        <h3 class="text-lg font-semibold">Suggested Bedtimes:</h3>
+        <ul class="list-disc pl-5">
           ${results.map(result => `
             <li>
               <strong>Bedtime:</strong> ${result.time} 
@@ -109,17 +95,41 @@
             </li>
           `).join('')}
         </ul>
-        <p class="cycle-count">Note: It's okay to sleep just one cycle for a short nap, but multiple cycles help you feel more refreshed!</p>
+        <p class="cycle-count mt-2">Note: One cycle works for naps; multiple cycles refresh you!</p>
       `;
     }
 
     function formatTime(hour, minute) {
       let period = hour >= 12 ? 'PM' : 'AM';
-      hour = hour % 12; // Convert to 12-hour format
-      if (hour === 0) hour = 12; // Handle midnight and noon
+      hour = hour % 12;
+      if (hour === 0) hour = 12;
       return `${hour}:${minute.toString().padStart(2, '0')} ${period}`;
     }
-  </script>
 
+    function logSleep() {
+      const logDate = document.getElementById('logDate').value;
+      const logHours = document.getElementById('logHours').value;
+      if (!logDate || !logHours) {
+        alert("Please enter a date and hours slept!");
+        return;
+      }
+
+      sleepLogData.push({ date: logDate, hours: logHours });
+      displaySleepLog();
+      document.getElementById('logDate').value = '';
+      document.getElementById('logHours').value = '';
+    }
+
+    function displaySleepLog() {
+      document.getElementById('sleepLog').innerHTML = `
+        <h4 class="font-medium">Recent Logs:</h4>
+        <div>
+          ${sleepLogData.map(log => `
+            <div class="log-entry">${log.date}: ${log.hours} hours</div>
+          `).join('')}
+        </div>
+      `;
+    }
+  </script>
 </body>
 </html>
